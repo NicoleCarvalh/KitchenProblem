@@ -4,6 +4,7 @@ import com.bytesMenu.entity.Prato;
 import com.bytesMenu.repository.PratoRepository;
 import com.bytesMenu.dto.PratoRequestDTO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -12,14 +13,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PratoService {
 
-    private final PratoRepository pratoRepository;
+    @Autowired
+    private PratoRepository pratoRepository;
 
-    public Prato criar(Prato dto) {
+    public Prato criar(PratoRequestDTO dto) {
         Prato prato = new Prato();
-        prato.setNome(dto.getNome());
-        prato.setDescricao(dto.getDescricao());
-        prato.setPreco(dto.getPreco());
-        prato.setDisponivel(dto.getDisponivel() != null ? dto.getDisponivel() : true);
+        prato.setNome(dto.name());
+        prato.setDescricao(dto.description());
+        prato.setPreco(dto.price());
+        prato.setDisponivel(dto.available() != null ? dto.available() : true);
 
         return pratoRepository.save(prato);
     }
@@ -28,18 +30,21 @@ public class PratoService {
         return pratoRepository.findAll();
     }
 
+    public List<Prato> listarDisponivel() {
+        return pratoRepository.findByDisponivel(true);
+    }
+
     public Prato buscarPorId(Long id) {
         return pratoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Prato não encontrado com id: " + id));
     }
 
-    public Prato atualizar(Long id, Prato dto) {
+    public Prato atualizar(Long id, PratoRequestDTO dto) {
         Prato prato = buscarPorId(id);
 
-        prato.setNome(dto.getNome());
-        prato.setDescricao(dto.getDescricao());
-        prato.setPreco(dto.getPreco());
-        prato.setDisponivel(dto.getDisponivel() != null ? dto.getDisponivel() : prato.getDisponivel());
+        prato.setNome(dto.name());
+        prato.setDescricao(dto.description());
+        prato.setPreco(dto.price());
 
         return pratoRepository.save(prato);
     }
@@ -49,5 +54,13 @@ public class PratoService {
             throw new RuntimeException("Prato não encontrado com id: " + id);
         }
         pratoRepository.deleteById(id);
+    }
+
+    public Prato disponivel(Long id){
+        Prato prato = buscarPorId(id);
+
+        prato.setDisponivel(!prato.getDisponivel());
+
+        return pratoRepository.save(prato);
     }
 }
